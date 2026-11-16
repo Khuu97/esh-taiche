@@ -541,6 +541,8 @@ async function refresh(){
   db.comments=r[2].data.map(function(c){return {id:c.id,pid:c.post_id,uid:c.user_id,text:c.body,hidden:c.hidden,created:Date.parse(c.created_at)};});
   db.notice=r[5].data.notice||"";db.visits=r[5].data.visits||0;
   db.notifs=sess&&r[6]?r[6].data.map(function(n){return {id:n.id,to:n.to_user,type:n.type,pid:n.post_id,from:n.from_user,created:Date.parse(n.created_at),read:n.read};}):[];
+  db.reports=[];
+  if(sess&&me()&&me().role==="teacher"){var rq=await sb.from("reports").select("*").order("created_at",{ascending:false}).limit(300);if(!rq.error)db.reports=rq.data.map(function(x){return {id:x.id,uid:x.user_id,pid:x.post_id,cid:x.comment_id,done:x.resolved,created:Date.parse(x.created_at)};});}
   if(sess&&!ss("esh-nv-"+sess)){ss("esh-nv-"+sess,"1");sb.rpc("note_visit").then(function(){},function(){});}
 }
 
@@ -609,7 +611,7 @@ function comments(p,full){
   var u=me(),all=db.comments.filter(function(c){return c.pid===p.id&&!c.hidden;});
   var show=full?all:all.slice(-2),h='<div class="cms">';
   if(!full&&all.length>2)h+='<button class="lnk mut" data-act="open" data-id="'+p.id+'">Xem thêm '+(all.length-2)+' bình luận</button>';
-  show.forEach(function(c){var cu=user(c.uid)||{name:"Thành viên"};h+='<div class="cm">'+av(cu,"s")+'<div style="min-width:0"><div class="bub"><b>'+esc(cu.name)+'</b>'+esc(c.text)+'</div><div class="meta"><span>'+ago(c.created)+'</span>'+(isT()?'<button data-act="hidecm" data-id="'+c.id+'">Ẩn</button>':"")+'</div></div></div>';});
+  show.forEach(function(c){var cu=user(c.uid)||{name:"Thành viên"};h+='<div class="cm">'+av(cu,"s")+'<div style="min-width:0"><div class="bub"><b>'+esc(cu.name)+'</b>'+esc(c.text)+'</div><div class="meta"><span>'+ago(c.created)+'</span>'+(isT()?'<button data-act="hidecm" data-id="'+c.id+'">Ẩn</button>':u&&u.id===c.uid?'<button data-act="delcm" data-id="'+c.id+'">Xóa</button>':u?'<button data-act="reportcm" data-id="'+c.id+'">Báo cáo</button>':"")+'</div></div></div>';});
   if(u&&!u.locked)h+='<div class="cform">'+av(u,"s")+'<div class="box"><input id="c-'+p.id+'" maxlength="300" placeholder="Viết bình luận..." aria-label="Viết bình luận"><button class="send" data-act="comment" data-id="'+p.id+'" aria-label="Gửi">'+ic("send")+'</button></div></div><p class="hint">Bình luận được lọc tự động theo <button class="lnk" style="font-size:12px" data-act="std">Tiêu chuẩn cộng đồng</button>.</p>';
   else if(u)h+='<p class="small" style="margin-top:6px">Tài khoản của bạn đang bị khóa quyền bình luận.</p>';
   else h+='<p class="small" style="margin-top:6px"><button class="lnk" data-act="login" data-v="in">Đăng nhập</button> để thích và bình luận.</p>';
@@ -617,8 +619,10 @@ function comments(p,full){
 }
 function postMenu(p){
   var u=me(),own=u&&u.id===p.uid,items="";
-  if(own&&(p.status==="pending"||p.status==="rejected"))items+='<button data-act="edit" data-id="'+p.id+'">'+ic("edit")+'Sửa bài</button>';
+  if(own&&(p.status==="pending"||p.status==="rejected"||p.status==="published"))items+='<button data-act="edit" data-id="'+p.id+'">'+ic("edit")+'Sửa bài</button>';
   if(own&&p.status==="published")items+='<button data-act="progress" data-id="'+p.id+'">'+ic("edit")+'Thêm cập nhật</button>';
+  if(own)items+='<button class="bad" data-act="delmine" data-id="'+p.id+'">'+ic("trash")+'Xóa bài của tôi</button>';
+  if(u&&!own&&!isT()&&p.status==="published")items+='<button data-act="reportpost" data-id="'+p.id+'">'+ic("help")+'Báo cáo bài viết</button>';
   if(isT()){
     if(p.status==="published")items+='<button data-act="pin" data-id="'+p.id+'">'+ic("pin")+(p.pinned?"Bỏ ghim":"Ghim lên đầu")+'</button><button data-act="hide" data-id="'+p.id+'">'+ic("eye")+'Ẩn khỏi bảng tin</button>';
     if(p.status==="hidden")items+='<button data-act="approve" data-id="'+p.id+'">'+ic("eye")+'Hiện lại</button>';
@@ -723,11 +727,11 @@ function renderPost(){
 }
 
 /* ---------- quản trị ---------- */
-var ATABS=[["home","Tổng quan","grid"],["queue","Chờ duyệt","inbox"],["posts","Bài viết","doc"],["comments","Bình luận","chat"],["users","Tài khoản","users"],["stats","Thống kê","chart"],["settings","Thông báo ghim","megaphone"]];
+var ATABS=[["home","Tổng quan","grid"],["queue","Chờ duyệt","inbox"],["posts","Bài viết","doc"],["comments","Bình luận","chat"],["reports","Báo cáo","shield"],["users","Tài khoản","users"],["stats","Thống kê","chart"],["settings","Thông báo ghim","megaphone"]];
 function renderAdmin(){
   if(!isT())return '<div class="shell two"><div></div><div class="card empty"><b>Trang dành cho giáo viên</b>Hãy đăng nhập bằng tài khoản giáo viên.</div></div>';
   var pend=pending(),h='<div class="adm"><aside class="side"><h1>Quản trị</h1><div class="navs">';
-  ATABS.forEach(function(t){var n=t[0]==="queue"?pend.length:0;h+='<button class="nav-i" data-act="tab" data-v="'+t[0]+'"'+(ui.tab===t[0]?' aria-current="page"':"")+'><span class="tile">'+ic(t[2])+'</span>'+t[1]+(n?'<span class="n">'+n+'</span>':"")+'</button>';});
+  ATABS.forEach(function(t){var n=t[0]==="queue"?pend.length:t[0]==="reports"?(db.reports||[]).filter(function(x){return !x.done;}).length:0;h+='<button class="nav-i" data-act="tab" data-v="'+t[0]+'"'+(ui.tab===t[0]?' aria-current="page"':"")+'><span class="tile">'+ic(t[2])+'</span>'+t[1]+(n?'<span class="n">'+n+'</span>':"")+'</button>';});
   h+='</div></aside><div class="main">';
   var T=ui.tab;
   if(T==="home"){
@@ -751,6 +755,12 @@ function renderAdmin(){
       h+='<tr><td><button class="lnk" style="color:var(--ink);text-align:left" data-act="open" data-id="'+p.id+'">'+esc(p.title)+'</button>'+(p.pinned?' <span class="badge b-published">Ghim</span>':"")+'<span class="sub">'+when(p.created)+'</span></td><td>'+esc(au.name)+'<span class="sub">'+esc(au.cls)+'</span></td><td><span class="badge b-'+p.status+'">'+STATUS[p.status]+'</span></td><td class="num">'+num(p.views)+'</td><td class="num">'+num(p.likes.length)+'</td><td class="num">'+num(ccount(p.id))+'</td><td style="white-space:nowrap">'+
       (p.status==="published"?'<button class="btn sm" data-act="pin" data-id="'+p.id+'">'+(p.pinned?"Bỏ ghim":"Ghim")+'</button> <button class="btn sm" data-act="hide" data-id="'+p.id+'">Ẩn</button> ':p.status==="hidden"?'<button class="btn sm" data-act="approve" data-id="'+p.id+'">Hiện lại</button> ':"")+'<button class="btn sm danger" data-act="delpost" data-id="'+p.id+'">Xóa</button></td></tr>';});
     h+='</tbody></table>'+(db.posts.length?"":'<div class="empty">Chưa có bài nào.</div>')+'</div>';
+  }
+  if(T==="reports"){
+    var rl=(db.reports||[]).slice().sort(function(a,b){return (a.done-b.done)||(b.created-a.created);});
+    h+='<div class="ah"><div><h2>Báo cáo từ học sinh</h2><p>'+rl.filter(function(x){return !x.done;}).length+' báo cáo chưa xử lý.</p></div></div>';
+    h+=rl.length?'<div class="tw"><table><thead><tr><th>Người báo cáo</th><th>Nội dung</th><th>Bài viết</th><th></th></tr></thead><tbody>'+rl.map(function(x){var ru=user(x.uid)||{name:"?"},pp=post(x.pid),cm=x.cid?db.comments.filter(function(c){return c.id===x.cid;})[0]:null;
+      return '<tr><td>'+esc(ru.name)+'<span class="sub">'+ago(x.created)+'</span></td><td>'+(x.cid?'Bình luận: '+(cm?esc(cm.text):"(đã xóa)"):"Cả bài viết")+'</td><td>'+(pp?'<button class="lnk" data-act="open" data-id="'+pp.id+'">'+esc(pp.title)+'</button>':"(đã xóa)")+'</td><td>'+(x.done?'Đã xử lý':(cm&&!cm.hidden?'<button class="btn sm danger" data-act="hidecm" data-id="'+cm.id+'">Ẩn bình luận</button> ':"")+(!x.cid&&pp&&pp.status==="published"?'<button class="btn sm danger" data-act="hide" data-id="'+pp.id+'">Ẩn bài</button> ':"")+'<button class="btn sm" data-act="resolvecr" data-id="'+x.id+'">Đã xử lý</button>')+'</td></tr>';}).join("")+'</tbody></table></div>':'<div class="card empty"><b>Chưa có báo cáo</b>Khi học sinh báo cáo bài hoặc bình luận, bạn sẽ thấy ở đây.</div>';
   }
   if(T==="comments"){
     var cl=db.comments.filter(function(c){return !c.hidden;}).sort(function(a,b){return b.created-a.created;}).slice(0,100);
@@ -923,7 +933,7 @@ document.addEventListener("click",function(e){
   if(act==="close"){closeModal();return;}
   if(act==="sort"){ui.sort=v;render();return;}
   if(act==="compose"){if(needLogin())return;if(u.locked){toast("Tài khoản của bạn đang bị khóa quyền đăng.");return;}composeModal(null,v==="photo");return;}
-  if(act==="edit"){render();composeModal(id);return;}
+  if(act==="edit"){var ep=post(id);if(ep&&ep.status==="published"&&!isT()&&!confirm("Sau khi sửa, bài sẽ ẩn khỏi bảng tin và chờ giáo viên duyệt lại. Tiếp tục?"))return;render();composeModal(id);return;}
   if(act==="rmkeep"){ui.draft.keep.splice(+v,1);drawCompose();return;}
   if(act==="rmfile"){ui.draft.files.splice(+v,1);drawCompose();return;}
   if(act==="tab"){ui.tab=v;render();window.scrollTo(0,0);return;}
@@ -990,6 +1000,17 @@ document.addEventListener("click",function(e){
       var pw=await sb.auth.updateUser({password:p1});if(pw.error){toast("Chưa đổi được mật khẩu: "+pw.error.message);return;}
       settingsModal("home");toast("Đã đổi mật khẩu.");return;
     }
+    if(act==="delmine"){var mp=post(id);if(!mp||mp.uid!==u.id)return;if(!confirm("Xóa bài này? Bài và các bình luận sẽ mất, không khôi phục được."))return;var dm=await sb.from("posts").delete().eq("id",id);if(dm.error)throw dm.error;if(ui.view==="post")ui.view="mine";ui.menu=null;await after("Đã xóa bài.");return;}
+    if(act==="delcm"){var mc2=db.comments.filter(function(c){return c.id===id;})[0];if(!mc2||mc2.uid!==u.id)return;if(!confirm("Xóa bình luận này?"))return;var dc=await sb.from("comments").delete().eq("id",id);if(dc.error)throw dc.error;await after("Đã xóa bình luận.");return;}
+    if(act==="reportpost"||act==="reportcm"){
+      var rc0=act==="reportcm"?db.comments.filter(function(c){return c.id===id;})[0]:null,rpid=rc0?rc0.pid:id;
+      if(!confirm(act==="reportcm"?"Báo cáo bình luận này cho giáo viên?":"Báo cáo bài viết này cho giáo viên?"))return;
+      var rr0=await sb.from("reports").insert({post_id:rpid,comment_id:rc0?id:null});
+      ui.menu=null;
+      if(rr0.error){if(rr0.error.code==="23505"){toast("Bạn đã báo cáo mục này rồi.");render();return;}throw rr0.error;}
+      render();toast("Đã gửi báo cáo cho giáo viên. Cảm ơn bạn.");return;
+    }
+    if(act==="resolvecr"){var rs=await sb.from("reports").update({resolved:true}).eq("id",id);if(rs.error)throw rs.error;await after("Đã đánh dấu xử lý.");return;}
     if(!isT())return;
     if(act==="approve"){var a=await sb.from("posts").update({status:"published",teacher_note:null}).eq("id",id);if(a.error)throw a.error;await after("Đã duyệt và đăng bài.");return;}
     if(act==="reject"){var note=val("rr-"+id);if(!note){toast("Hãy ghi góp ý để học sinh biết cần sửa gì.");var ri=document.getElementById("rr-"+id);if(ri)ri.focus();return;}
