@@ -707,7 +707,7 @@ function renderMine(){
   h+='<div class="pgrid"><div class="pleft"><div class="card sec"><h3>Giới thiệu</h3><ul class="intro">'+
     '<li>'+ic("school")+'<span>'+(u.role==="teacher"?"Giáo viên":"Học sinh")+' tại <b>Einstein School HCMC</b></span></li>'+(u.cls?'<li>'+ic("users")+'<span>Lớp <b>'+esc(u.cls)+'</b></span></li>':"")+
     '<li>'+ic("mail")+'<span>'+esc(u.email||"—")+'</span></li><li>'+ic("cal")+'<span>Tham gia '+(u.created?new Date(u.created).toLocaleDateString("vi-VN",{month:"long",year:"numeric"}):"")+'</span></li></ul>'+
-    '<button class="btn block" data-act="settings" data-v="acc">Chỉnh sửa chi tiết</button></div>'+
+    '</div>'+
     '<div class="card sec"><h3>Thành tích</h3><div class="mini"><div><b>'+c.published+'</b><span>Bài đã đăng</span></div><div><b>'+num(lk)+'</b><span>Lượt thích</span></div><div><b>'+num(vw)+'</b><span>Lượt xem</span></div></div></div>'+
     '<div class="card sec small">Trang cá nhân chỉ mình bạn thấy. Người khác chỉ thấy tên và lớp của bạn trên bài viết.</div></div>';
   h+='<div class="center gap">'+creator()+'<div class="card"><div class="sortbar"><b>Bài viết</b></div><div class="ftabs">'+F.map(function(f){return '<button data-act="pf" data-v="'+f[0]+'" aria-pressed="'+(ui.pf===f[0])+'">'+f[1]+' <span>'+f[2]+'</span></button>';}).join("")+'</div></div>';
