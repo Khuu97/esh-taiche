@@ -827,9 +827,9 @@ function drawCompose(){
   var h=mhead(d.id?"Sửa bài viết":"Tạo bài viết")+'<div class="mb"><div class="cw">'+av(u)+'<div><b>'+esc(u.name)+'</b><small>'+ic(isT()?"globe":"lock")+(isT()?"Đăng ngay":"Gửi giáo viên duyệt")+'</small></div></div>'+
     '<textarea id="ct" class="ctext'+(n?" sm":"")+'" maxlength="3000" placeholder="'+esc(u.name.split(" ").pop())+' ơi, bạn làm gì từ vỏ hộp sữa? Cần vật liệu gì, làm thế nào?" autofocus>'+esc(d.text)+'</textarea>'+
     (n?'<div class="pics">'+pics+'</div>':"")+
-    '<div class="addbar"><span>Thêm vào bài viết của bạn</span><label title="Thêm ảnh ('+n+'/4)"'+(n>=4?' style="opacity:.4;pointer-events:none"':"")+'><span style="color:#45bd62">'+ic("photo")+'</span>Ảnh ('+n+'/4)<input id="pf" type="file" accept="image/*" multiple></label></div>'+
+    '<div class="addbar"><span>Thêm vào bài viết của bạn</span><label title="Thêm ảnh (không bắt buộc)"><span style="color:#45bd62">'+ic("photo")+'</span>Ảnh'+(n?' ('+n+')':'')+'<input id="pf" type="file" accept="image/*" multiple></label></div>'+
     '<p class="note">'+(isT()?"Bài của giáo viên được đăng ngay.":"Bài sẽ hiện trên bảng tin sau khi giáo viên duyệt. Không chụp rõ mặt người.")+'</p>'+
-    '<button class="btn pri block" style="height:40px" data-act="dopost"'+(d.text.trim().length<10?" disabled":"")+'>'+(isT()?"Đăng":d.id?"Gửi duyệt lại":"Gửi duyệt")+'</button></div>';
+    '<button class="btn pri block" style="height:40px" data-act="dopost"'+(d.text.trim().length<1&&!n?" disabled":"")+'>'+(isT()?"Đăng":d.id?"Gửi duyệt lại":"Gửi duyệt")+'</button></div>';
   modal(h,true);
   var t2=document.getElementById("ct");if(t2){t2.focus();t2.setSelectionRange(t2.value.length,t2.value.length);}
 }
@@ -842,8 +842,8 @@ function val(id){var e=document.getElementById(id);return e?e.value.trim():"";}
 async function submitPost(){
   var u=me(),d=ui.draft;if(!u||!d)return;
   var text=val("ct");
-  if(text.length<10){toast("Hãy viết ít nhất một câu mô tả ý tưởng của bạn.");return;}
-  var first=text.split("\n")[0].trim(),title=first.length>100?first.slice(0,99)+"…":first;
+  if(!text&&!d.keep.length&&!d.files.length){toast("Hãy viết vài dòng hoặc thêm ảnh.");return;}
+  var first=(text.split("\n")[0]||"").trim()||"Ý tưởng tái chế",title=first.length>100?first.slice(0,99)+"…":first;
   var btn=document.querySelector("[data-act=dopost]");if(btn){btn.disabled=true;btn.textContent="Đang gửi...";}
   try{
     var urls=d.keep.slice();
@@ -885,7 +885,7 @@ function settingsModal(v){
   }else if(v==="pw"&&u){
     h=back("Đổi mật khẩu")+'<div class="mb"><label class="fld"><span>Mật khẩu mới</span><input id="np1" type="password" class="inp" autocomplete="new-password" placeholder="Ít nhất 6 ký tự"></label><label class="fld"><span>Nhập lại mật khẩu mới</span><input id="np2" type="password" class="inp" autocomplete="new-password"></label><button class="btn pri block" data-act="savepw">Đổi mật khẩu</button></div>';
   }else if(v==="help"){
-    var S=[["Đăng ký, đăng nhập","Bấm “Đăng ký” ở góc phải, nhập tên, lớp, email và mật khẩu. Lần sau chỉ cần “Đăng nhập”."],["Đăng bài","Bấm ô “… bạn có ý tưởng tái chế gì?” hoặc nút bút ở góc dưới. Viết mô tả, thêm tối đa 4 ảnh rồi bấm “Gửi duyệt”. Dòng đầu tiên sẽ là tiêu đề."],["Chờ duyệt","Bài hiện trên bảng tin sau khi giáo viên duyệt. Nếu giáo viên trả lại, mở Trang cá nhân để xem góp ý, sửa rồi gửi lại."],["Thích, bình luận","Bấm “Thích” hoặc “Bình luận” dưới mỗi bài. Bình luận được lọc tự động theo Tiêu chuẩn cộng đồng."],["Thông báo","Chuông ở góc phải báo khi có người thích, bình luận, hoặc khi bài được duyệt."]];
+    var S=[["Đăng ký, đăng nhập","Bấm “Đăng ký” ở góc phải, nhập tên, lớp, email và mật khẩu. Lần sau chỉ cần “Đăng nhập”."],["Đăng bài","Bấm ô “… bạn có ý tưởng tái chế gì?” hoặc nút bút ở góc dưới. Viết mô tả, thêm ảnh (nếu có) rồi bấm “Gửi duyệt”. Dòng đầu tiên sẽ là tiêu đề."],["Chờ duyệt","Bài hiện trên bảng tin sau khi giáo viên duyệt. Nếu giáo viên trả lại, mở Trang cá nhân để xem góp ý, sửa rồi gửi lại."],["Thích, bình luận","Bấm “Thích” hoặc “Bình luận” dưới mỗi bài. Bình luận được lọc tự động theo Tiêu chuẩn cộng đồng."],["Thông báo","Chuông ở góc phải báo khi có người thích, bình luận, hoặc khi bài được duyệt."]];
     h=back("Hướng dẫn sử dụng")+'<div class="mb">'+S.map(function(x,i){return '<div class="rule"><b>'+(i+1)+'. '+x[0]+'</b><span>'+x[1]+'</span></div>';}).join("")+'</div>';
   }else if(v==="about"){
     h=back("Giới thiệu")+'<div class="mb" style="text-align:center"><span class="mk big"><img src="'+LOGO+'" alt=""></span><h3 style="margin:10px 0 4px;font-size:20px">ESH Tái Chế</h3><p class="small">Hộp cũ – Đủ điều hay</p><p style="margin-top:12px">Sân chơi của học sinh Einstein School Ho Chi Minh City để chia sẻ ý tưởng biến vỏ hộp sữa thành đồ dùng hữu ích, cùng nhau sống xanh hơn.</p><p class="small" style="margin-top:12px">'+num(db.visits)+' lượt truy cập</p></div>';
@@ -1004,14 +1004,14 @@ document.addEventListener("input",function(e){
   if(e.target.id==="q"){ui.q=e.target.value;
     if(ui.view!=="feed"){ui.view="feed";render();var qq=document.getElementById("q");qq.focus();qq.setSelectionRange(qq.value.length,qq.value.length);}
     else{var l=document.getElementById("list");if(l)l.innerHTML=feedList();}}
-  if(e.target.id==="ct"&&ui.draft){ui.draft.text=e.target.value;var pb=document.querySelector("[data-act=dopost]");if(pb)pb.disabled=e.target.value.trim().length<10;}
+  if(e.target.id==="ct"&&ui.draft){ui.draft.text=e.target.value;var pb=document.querySelector("[data-act=dopost]");if(pb)pb.disabled=e.target.value.trim().length<1&&!(ui.draft.keep.length+ui.draft.files.length);}
   if(e.target.id==="uq"){ui.uq=e.target.value;render();var uqi=document.getElementById("uq");uqi.focus();uqi.setSelectionRange(uqi.value.length,uqi.value.length);}
 });
 document.addEventListener("change",function(e){
   if(e.target.id==="pf"&&ui.draft){
-    var d=ui.draft,room=4-d.keep.length-d.files.length;
+    var d=ui.draft,room=10-d.keep.length-d.files.length;
     Array.prototype.slice.call(e.target.files,0,Math.max(0,room)).forEach(function(f){if(/^image\//.test(f.type))d.files.push({f:f,url:URL.createObjectURL(f)});});
-    if(e.target.files.length>room)toast("Mỗi bài tối đa 4 ảnh.");
+    if(e.target.files.length>room)toast("Mỗi bài tối đa 10 ảnh.");
     drawCompose();
   }
 });
