@@ -624,7 +624,7 @@ function postMenu(p){
   if(own)items+='<button class="bad" data-act="delmine" data-id="'+p.id+'">'+ic("trash")+'Xóa bài của tôi</button>';
   if(u&&!own&&!isT()&&p.status==="published")items+='<button data-act="reportpost" data-id="'+p.id+'">'+ic("help")+'Báo cáo bài viết</button>';
   if(isT()){
-    if(p.status==="published")items+='<button data-act="pin" data-id="'+p.id+'">'+ic("pin")+(p.pinned?"Bỏ ghim":"Ghim lên đầu")+'</button><button data-act="hide" data-id="'+p.id+'">'+ic("eye")+'Ẩn khỏi bảng tin</button>';
+    if(p.status==="published")items+='<button data-act="pin" data-id="'+p.id+'">'+ic("pin")+(p.pinned?"Bỏ bài tiêu biểu":"Chọn làm bài tiêu biểu")+'</button><button data-act="hide" data-id="'+p.id+'">'+ic("eye")+'Ẩn khỏi bảng tin</button>';
     if(p.status==="hidden")items+='<button data-act="approve" data-id="'+p.id+'">'+ic("eye")+'Hiện lại</button>';
     items+='<button class="bad" data-act="delpost" data-id="'+p.id+'">'+ic("trash")+'Xóa bài</button>';
   }
@@ -634,7 +634,7 @@ function postMenu(p){
 function card(p,o){
   o=o||{};var u=me(),full=!!o.full,au=user(p.uid)||{name:"Thành viên"},on=!!u&&p.likes.indexOf(u.id)>-1,nc=ccount(p.id);
   var h='<article class="card post" id="post-'+p.id+'"><div class="ph">'+av(au)+'<div class="who"><b>'+esc(au.name)+'</b>'+(au.cls&&au.role!=="teacher"?' <span class="cls">· '+esc(au.cls)+'</span>':"")+(au.role==="teacher"?' <span class="cls">· Giáo viên</span>':"")+
-    '<small><button class="lnk mut" style="font-size:13px" data-act="open" data-id="'+p.id+'">'+ago(p.created)+'</button> · '+ic("globe")+(p.pinned?' · <span class="pin">'+ic("pin")+'Đã ghim</span>':"")+'</small></div>'+postMenu(p)+'</div>';
+    '<small><button class="lnk mut" style="font-size:13px" data-act="open" data-id="'+p.id+'">'+ago(p.created)+'</button> · '+ic("globe")+(p.pinned?' · <span class="pin">'+ic("pin")+'Bài tiêu biểu</span>':"")+'</small></div>'+postMenu(p)+'</div>';
   if(o.mine&&p.status!=="published")h+='<div class="status st-'+p.status+'" style="margin-top:10px"><b>'+STATUS[p.status]+'</b>'+(p.status==="pending"?"Bài sẽ hiện trên bảng tin sau khi giáo viên duyệt.":p.status==="rejected"?(p.note?"Góp ý: "+esc(p.note):"Hãy sửa lại bài và gửi duyệt lại."):"Giáo viên đã ẩn bài này khỏi bảng tin.")+'</div>';
   h+=bodyHtml(p,full)+gallery(p);
   if(p.status==="published"){
@@ -752,8 +752,8 @@ function renderAdmin(){
   if(T==="posts"){
     h+='<div class="ah"><div><h2>Bài viết</h2><p>'+db.posts.length+' bài. Ghim, ẩn hoặc xóa bài.</p></div><div class="pills">'+[["all","Tất cả"],["published","Đã đăng"],["pending","Chờ duyệt"],["rejected","Trả lại"],["hidden","Đã ẩn"]].map(function(f){return '<button data-act="mf" data-v="'+f[0]+'" aria-pressed="'+(ui.mf===f[0])+'">'+f[1]+'</button>';}).join("")+'</div></div><div class="tw"><table><thead><tr><th>Bài viết</th><th>Người đăng</th><th>Trạng thái</th><th>Xem</th><th>Thích</th><th>BL</th><th></th></tr></thead><tbody>';
     db.posts.filter(function(p){return ui.mf==="all"||p.status===ui.mf;}).sort(function(a,b){return b.created-a.created;}).forEach(function(p){var au=user(p.uid)||{name:"?"};
-      h+='<tr><td><button class="lnk" style="color:var(--ink);text-align:left" data-act="open" data-id="'+p.id+'">'+esc(p.title)+'</button>'+(p.pinned?' <span class="badge b-published">Ghim</span>':"")+'<span class="sub">'+when(p.created)+'</span></td><td>'+esc(au.name)+'<span class="sub">'+esc(au.cls)+'</span></td><td><span class="badge b-'+p.status+'">'+STATUS[p.status]+'</span></td><td class="num">'+num(p.views)+'</td><td class="num">'+num(p.likes.length)+'</td><td class="num">'+num(ccount(p.id))+'</td><td style="white-space:nowrap">'+
-      (p.status==="published"?'<button class="btn sm" data-act="pin" data-id="'+p.id+'">'+(p.pinned?"Bỏ ghim":"Ghim")+'</button> <button class="btn sm" data-act="hide" data-id="'+p.id+'">Ẩn</button> ':p.status==="hidden"?'<button class="btn sm" data-act="approve" data-id="'+p.id+'">Hiện lại</button> ':"")+'<button class="btn sm danger" data-act="delpost" data-id="'+p.id+'">Xóa</button></td></tr>';});
+      h+='<tr><td><button class="lnk" style="color:var(--ink);text-align:left" data-act="open" data-id="'+p.id+'">'+esc(p.title)+'</button>'+(p.pinned?' <span class="badge b-published">Tiêu biểu</span>':"")+'<span class="sub">'+when(p.created)+'</span></td><td>'+esc(au.name)+'<span class="sub">'+esc(au.cls)+'</span></td><td><span class="badge b-'+p.status+'">'+STATUS[p.status]+'</span></td><td class="num">'+num(p.views)+'</td><td class="num">'+num(p.likes.length)+'</td><td class="num">'+num(ccount(p.id))+'</td><td style="white-space:nowrap">'+
+      (p.status==="published"?'<button class="btn sm" data-act="pin" data-id="'+p.id+'">'+(p.pinned?"Bỏ tiêu biểu":"Tiêu biểu")+'</button> <button class="btn sm" data-act="hide" data-id="'+p.id+'">Ẩn</button> ':p.status==="hidden"?'<button class="btn sm" data-act="approve" data-id="'+p.id+'">Hiện lại</button> ':"")+'<button class="btn sm danger" data-act="delpost" data-id="'+p.id+'">Xóa</button></td></tr>';});
     h+='</tbody></table>'+(db.posts.length?"":'<div class="empty">Chưa có bài nào.</div>')+'</div>';
   }
   if(T==="reports"){
@@ -824,9 +824,13 @@ function stdModal(fromSet){
   ["Cách xử lý vi phạm","Bình luận được lọc tự động. Bài viết được giáo viên duyệt trước khi đăng. Giáo viên có thể ẩn nội dung và khóa quyền đăng nếu vi phạm nhiều lần."]];
   modal((fromSet?'<div class="mh2"><button class="circ bk" data-act="setgo" data-v="home" aria-label="Quay lại">'+ic("back")+'</button><h2>Tiêu chuẩn cộng đồng</h2><button class="circ x" data-act="close" aria-label="Đóng">'+ic("x")+'</button></div>':mhead("Tiêu chuẩn cộng đồng"))+'<div class="mb"><p class="small" style="margin-bottom:6px">ESH Tái Chế là nơi chia sẻ vui và an toàn cho cả trường. Khi tham gia, chúng ta cùng giữ những điều sau:</p>'+R.map(function(r,i){return '<div class="rule"><b>'+(i+1)+'. '+r[0]+'</b><span>'+r[1]+'</span></div>';}).join("")+'</div><div class="mf"><button class="btn pri" data-act="close">Đã hiểu</button></div>');
 }
+function draftKey(){var u=me();return u?"esh-draft-"+u.id:"";}
+function draftGet(){try{return localStorage.getItem(draftKey())||"";}catch(e){return "";}}
+function draftSet(v){try{if(v&&v.trim())localStorage.setItem(draftKey(),v);else localStorage.removeItem(draftKey());}catch(e){}}
 function composeModal(id,pick){
   var u=me(),p=id?post(id):null;
   ui.draft={id:p?p.id:"",text:p?(p.body.replace(/\s+/g," ").indexOf(p.title.replace(/…$/,""))===0?p.body:p.title+"\n"+p.body):"",keep:p?p.imgs.slice():[],files:[]};
+  if(!p){var dr=draftGet();if(dr){ui.draft.text=dr;ui.draft.restored=true;}}
   drawCompose();
   if(pick){var f=document.getElementById("pf");if(f)f.click();}
 }
@@ -840,7 +844,7 @@ function drawCompose(){
     '<textarea id="ct" class="ctext'+(n?" sm":"")+'" maxlength="3000" placeholder="'+esc(u.name.split(" ").pop())+' ơi, bạn làm gì từ vỏ hộp sữa? Cần vật liệu gì, làm thế nào?" autofocus>'+esc(d.text)+'</textarea>'+
     (n?'<div class="pics">'+pics+'</div>':"")+
     '<div class="addbar"><span>Thêm vào bài viết của bạn</span><label title="Thêm ảnh (không bắt buộc)"><span style="color:#45bd62">'+ic("photo")+'</span>Ảnh'+(n?' ('+n+')':'')+'<input id="pf" type="file" accept="image/*" multiple></label></div>'+
-    '<p class="note">'+(isT()?"Bài của giáo viên được đăng ngay.":"Bài sẽ hiện trên bảng tin sau khi giáo viên duyệt. Không chụp rõ mặt người.")+'</p>'+
+    (d.restored?'<p class="note">Đã khôi phục bản nháp lần trước. <button class="lnk" data-act="cleardraft">Xóa nháp</button></p>':"")+'<p class="note">'+(isT()?"Bài của giáo viên được đăng ngay.":"Bài sẽ hiện trên bảng tin sau khi giáo viên duyệt. Không chụp rõ mặt người.")+'</p>'+
     '<button class="btn pri block" style="height:40px" data-act="dopost"'+(d.text.trim().length<1&&!n?" disabled":"")+'>'+(isT()?"Đăng":d.id?"Gửi duyệt lại":"Gửi duyệt")+'</button></div>';
   modal(h,true);
   var t2=document.getElementById("ct");if(t2){t2.focus();t2.setSelectionRange(t2.value.length,t2.value.length);}
@@ -868,6 +872,7 @@ async function submitPost(){
     var row={title:title,body:text,imgs:urls};
     if(d.id){var ur=await sb.from("posts").update(row).eq("id",d.id);if(ur.error)throw ur.error;}
     else{row.user_id=u.id;row.mats=[];row.steps=[];if(isT())row.status="published";var ir=await sb.from("posts").insert(row);if(ir.error)throw ir.error;}
+    if(!d.id)draftSet("");
     closeModal();await refresh();
     if(isT()){go("feed");toast("Đã đăng bài.");}
     else{go("mine");toast("Đã gửi duyệt. Bài sẽ hiện trên bảng tin khi giáo viên duyệt.");}
@@ -1000,6 +1005,7 @@ document.addEventListener("click",function(e){
       var pw=await sb.auth.updateUser({password:p1});if(pw.error){toast("Chưa đổi được mật khẩu: "+pw.error.message);return;}
       settingsModal("home");toast("Đã đổi mật khẩu.");return;
     }
+    if(act==="cleardraft"){draftSet("");if(ui.draft){ui.draft.text="";ui.draft.restored=false;drawCompose();}return;}
     if(act==="delmine"){var mp=post(id);if(!mp||mp.uid!==u.id)return;if(!confirm("Xóa bài này? Bài và các bình luận sẽ mất, không khôi phục được."))return;var dm=await sb.from("posts").delete().eq("id",id);if(dm.error)throw dm.error;if(ui.view==="post")ui.view="mine";ui.menu=null;await after("Đã xóa bài.");return;}
     if(act==="delcm"){var mc2=db.comments.filter(function(c){return c.id===id;})[0];if(!mc2||mc2.uid!==u.id)return;if(!confirm("Xóa bình luận này?"))return;var dc=await sb.from("comments").delete().eq("id",id);if(dc.error)throw dc.error;await after("Đã xóa bình luận.");return;}
     if(act==="reportpost"||act==="reportcm"){
@@ -1015,7 +1021,7 @@ document.addEventListener("click",function(e){
     if(act==="approve"){var a=await sb.from("posts").update({status:"published",teacher_note:null}).eq("id",id);if(a.error)throw a.error;await after("Đã duyệt và đăng bài.");return;}
     if(act==="reject"){var note=val("rr-"+id);if(!note){toast("Hãy ghi góp ý để học sinh biết cần sửa gì.");var ri=document.getElementById("rr-"+id);if(ri)ri.focus();return;}
       var rj=await sb.from("posts").update({status:"rejected",teacher_note:note}).eq("id",id);if(rj.error)throw rj.error;await after("Đã trả lại bài kèm góp ý.");return;}
-    if(act==="pin"){var pp=post(id),pn=await sb.from("posts").update({pinned:!pp.pinned}).eq("id",id);if(pn.error)throw pn.error;await after(pp.pinned?"Đã bỏ ghim.":"Đã ghim bài.");return;}
+    if(act==="pin"){var pp=post(id),pn=await sb.from("posts").update({pinned:!pp.pinned}).eq("id",id);if(pn.error)throw pn.error;await after(pp.pinned?"Đã bỏ bài tiêu biểu.":"Đã chọn làm bài tiêu biểu.");return;}
     if(act==="hide"){var hd=await sb.from("posts").update({status:"hidden"}).eq("id",id);if(hd.error)throw hd.error;await after("Đã ẩn bài khỏi bảng tin.");return;}
     if(act==="hidecm"){var hc=await sb.from("comments").update({hidden:true}).eq("id",id);if(hc.error)throw hc.error;await after("Đã ẩn bình luận.");return;}
     if(act==="delpost"){if(!confirm("Xóa hẳn bài này? Không khôi phục được."))return;var dp=await sb.from("posts").delete().eq("id",id);if(dp.error)throw dp.error;if(ui.view==="post")ui.view="feed";await after("Đã xóa bài.");return;}
@@ -1027,7 +1033,7 @@ document.addEventListener("input",function(e){
   if(e.target.id==="q"){ui.q=e.target.value;
     if(ui.view!=="feed"){ui.view="feed";render();var qq=document.getElementById("q");qq.focus();qq.setSelectionRange(qq.value.length,qq.value.length);}
     else{var l=document.getElementById("list");if(l)l.innerHTML=feedList();}}
-  if(e.target.id==="ct"&&ui.draft){ui.draft.text=e.target.value;var pb=document.querySelector("[data-act=dopost]");if(pb)pb.disabled=e.target.value.trim().length<1&&!(ui.draft.keep.length+ui.draft.files.length);}
+  if(e.target.id==="ct"&&ui.draft){ui.draft.text=e.target.value;if(!ui.draft.id)draftSet(e.target.value);var pb=document.querySelector("[data-act=dopost]");if(pb)pb.disabled=e.target.value.trim().length<1&&!(ui.draft.keep.length+ui.draft.files.length);}
   if(e.target.id==="uq"){ui.uq=e.target.value;render();var uqi=document.getElementById("uq");uqi.focus();uqi.setSelectionRange(uqi.value.length,uqi.value.length);}
 });
 document.addEventListener("change",function(e){
