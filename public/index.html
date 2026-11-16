@@ -88,6 +88,7 @@ svg{flex:none}
 .nav-i small{display:block;color:var(--muted);font-weight:500;font-size:13px}
 .hr{height:1px;background:#ced0d4;margin:8px 8px}
 .rh{font-size:17px;font-weight:700;color:var(--muted);margin:4px 8px 8px}
+.vis{display:flex;align-items:center;gap:12px;padding:8px}.vis b{display:block;font-size:17px;color:var(--text,#1c1e21)}.vis small{color:var(--muted);font-size:13px}
 .foot{color:var(--muted);font-size:13px;line-height:1.6;padding:8px}
 .foot button{background:none;border:0;padding:0;color:inherit;font-size:inherit}
 .foot button:hover{text-decoration:underline}
@@ -670,6 +671,7 @@ function leftRail(){
   h+='<button class="nav-i" data-act="settings"><span class="tile c5">'+ic("cog")+'</span>Cài đặt</button>';
   h+='<div class="hr"></div><div class="rh">Lối tắt</div>';
   h+='<button class="nav-i" data-act="sortgo" data-v="likes"><span class="tile c6">'+ic("heart")+'</span>Bài được yêu thích</button><button class="nav-i" data-act="sortgo" data-v="views"><span class="tile c7">'+ic("eye")+'</span>Bài xem nhiều</button><button class="nav-i" data-act="settings" data-v="help"><span class="tile c8">'+ic("help")+'</span>Hướng dẫn sử dụng</button>';
+  h+='<div class="hr"></div><div class="vis"><span class="tile c7">'+ic("eye")+'</span><span><b>'+num(db.visits)+'</b><small>lượt truy cập web</small></span></div>';
   return h+'</aside>';
 }
 function rightRail(){
