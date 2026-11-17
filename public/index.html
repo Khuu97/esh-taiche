@@ -70,6 +70,8 @@ svg{flex:none}
 
 /* ===== Ảnh đại diện ===== */
 .av{display:grid;place-items:center;border-radius:50%;font-weight:700;color:#fff;flex:none;width:40px;height:40px;font-size:16px}
+.pbn{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-left:4px solid #83184c;background:#fdf1f7}.pbn.warn{border-left-color:#d98a00;background:#fff6e5}.pbn>span{display:flex;gap:10px;align-items:center;font-size:15px}.pbn .ic{width:22px;height:22px;flex:none;color:#83184c}.pbn.warn .ic{color:#d98a00}.pbn .btn{flex:none}
+.sharebtn{background:#83184c!important;color:#fff!important;font-weight:700}.sharebtn .ic{color:#fff}
 .av{overflow:hidden}.av img{width:100%;height:100%;object-fit:cover;display:block}
 .cvin{position:relative;background-size:cover!important;background-position:center!important}
 .pav{position:relative}.cam{position:absolute;display:grid;place-items:center;border:0;cursor:pointer;background:#e4e6eb;color:#050505;box-shadow:0 1px 3px rgba(0,0,0,.25)}.cam:hover{background:#d8dadf}.cam.a{right:6px;bottom:8px;width:36px;height:36px;border-radius:50%}.cam.c{right:14px;bottom:14px;height:36px;padding:0 12px;border-radius:8px;gap:6px;display:flex;align-items:center;font-weight:600;font-size:14px}.cam .ic{width:18px;height:18px}
@@ -105,7 +107,7 @@ svg{flex:none}
 .creator .r1{display:flex;gap:8px;align-items:center}
 .creator .fake{flex:1;height:40px;border:0;border-radius:99px;background:var(--field);text-align:left;padding:0 14px;color:var(--muted);font-size:16px}
 .creator .fake:hover{background:#e4e6eb}
-.creator .r2{display:flex;border-top:1px solid var(--line);margin-top:12px;padding-top:8px}
+.creator .r2{display:flex;border-top:1px solid var(--line);margin-top:12px;padding-top:8px;gap:8px}
 .creator .r2 button{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;height:40px;border:0;background:none;border-radius:8px;color:var(--muted);font-weight:600}
 .creator .r2 button:hover{background:var(--hover)}
 .welcome{padding:20px}
@@ -649,7 +651,7 @@ function card(p,o){
 }
 
 /* ---------- bảng tin ---------- */
-var SORTS=[["new","Mới nhất"],["views","Xem nhiều"],["likes","Yêu thích"]];
+var SORTS=[["new","Mới nhất"],["views","Nhiều lượt xem"],["likes","Nhiều lượt thích"]];
 function feedList(){
   var q=norm(ui.q);
   var arr=db.posts.filter(function(p){
@@ -662,7 +664,7 @@ function feedList(){
     if(ui.sort==="likes")return b.likes.length-a.likes.length||b.created-a.created;
     return b.created-a.created;
   });
-  if(!arr.length)return '<div class="card empty"><b>'+(q?"Không tìm thấy bài phù hợp":"Chưa có bài nào")+'</b>'+(q?"Thử từ khóa khác.":"Hãy là người đầu tiên chia sẻ ý tưởng tái chế hộp sữa.")+'</div>';
+  if(!arr.length)return '<div class="card empty"><b>'+(q?"Không tìm thấy bài phù hợp":"Chưa có bài nào")+'</b>'+(q?"Thử từ khóa khác.":"Hãy là người đầu tiên chia sẻ ý tưởng tái chế hộp sữa. Một ảnh sản phẩm và vài dòng cách làm là đủ.")+(!q&&me()&&!me().locked?'<div style="margin-top:12px"><button class="btn pri" data-act="compose">Chia sẻ ý tưởng đầu tiên</button></div>':"")+'</div>';
   return arr.map(function(p){return card(p);}).join("");
 }
 function leftRail(){
@@ -677,7 +679,7 @@ function leftRail(){
   if(isT()){var pc=pending().length;h+='<button class="nav-i" data-act="nav" data-v="admin"><span class="tile c4">'+ic("shield")+'</span>Quản trị'+(pc?'<span class="n">'+pc+'</span>':"")+'</button>';}
   h+='<button class="nav-i" data-act="settings"><span class="tile c5">'+ic("cog")+'</span>Cài đặt</button>';
   h+='<div class="hr"></div><div class="rh">Lối tắt</div>';
-  h+='<button class="nav-i" data-act="sortgo" data-v="likes"><span class="tile c6">'+ic("heart")+'</span>Bài được yêu thích</button><button class="nav-i" data-act="sortgo" data-v="views"><span class="tile c7">'+ic("eye")+'</span>Bài xem nhiều</button><button class="nav-i" data-act="settings" data-v="help"><span class="tile c8">'+ic("help")+'</span>Hướng dẫn sử dụng</button>';
+  h+='<button class="nav-i" data-act="sortgo" data-v="likes"><span class="tile c6">'+ic("heart")+'</span>Nhiều lượt thích</button><button class="nav-i" data-act="sortgo" data-v="views"><span class="tile c7">'+ic("eye")+'</span>Nhiều lượt xem</button><button class="nav-i" data-act="settings" data-v="help"><span class="tile c8">'+ic("help")+'</span>Hướng dẫn sử dụng</button>';
   h+='<div class="hr"></div><div class="vis"><span class="tile c7">'+ic("eye")+'</span><span><b>'+num(db.visits)+'</b><small>lượt truy cập web</small></span></div>';
   return h+'</aside>';
 }
@@ -689,16 +691,24 @@ function rightRail(){
   h+='<div class="hr"></div>'+footer()+'</div></aside>';
   return h;
 }
-function footer(){return '<div class="foot">ESH Tái Chế · Hộp cũ, đủ điều hay<br>Einstein School Ho Chi Minh City<br><button data-act="std">Tiêu chuẩn cộng đồng</button> · '+num(db.visits)+' lượt truy cập</div>';}
+function footer(){return '<div class="foot">ESH Tái Chế · Hộp cũ, đủ điều hay<br>Einstein School Ho Chi Minh City<br><button data-act="std">Tiêu chuẩn cộng đồng</button></div>';}
 function creator(){
   var u=me();
   if(!u)return '<div class="card welcome"><h2>Chào mừng đến ESH Tái Chế</h2><p>Nơi học sinh Einstein School chia sẻ ý tưởng biến vỏ hộp sữa thành đồ dùng hữu ích. Đăng nhập để đăng bài, thích và bình luận.</p><div class="bts"><button class="btn pri" data-act="login" data-v="up">Tạo tài khoản</button><button class="btn" data-act="login" data-v="in">Đăng nhập</button></div></div>';
   if(u.locked)return '<div class="card creator"><p class="small">'+ic("lock")+' Tài khoản của bạn đang bị khóa quyền đăng bài.</p></div>';
-  return '<div class="card creator"><div class="r1">'+av(u)+'<button class="fake" data-act="compose">'+esc(u.name.split(" ").pop())+' ơi, bạn có ý tưởng tái chế gì?</button></div><div class="r2"><button data-act="compose" data-v="photo"><span style="color:#45bd62">'+ic("photo")+'</span>Ảnh sản phẩm</button></div></div>';
+  return '<div class="card creator"><div class="r1">'+av(u)+'<button class="fake" data-act="compose">'+esc(u.name.split(" ").pop())+' ơi, bạn có ý tưởng tái chế gì?</button></div><div class="r2"><button class="sharebtn" data-act="compose">'+ic("edit")+'Chia sẻ ý tưởng</button><button data-act="compose" data-v="photo"><span style="color:#45bd62">'+ic("photo")+'</span>Ảnh sản phẩm</button></div></div>';
 }
 function mobNotice(){return db.notice?'<div class="card notice mob"><div class="h">'+ic("megaphone")+'Thông báo từ giáo viên</div><p>'+esc(db.notice)+'</p></div>':"";}
+function pendBanner(){
+  var u=me();if(!u)return "";
+  if(isT()){var n=pending().length;return n?'<div class="card pbn"><span>'+ic("inbox")+'<b>'+n+' bài đang chờ duyệt</b></span><button class="btn pri sm" data-act="nav" data-v="admin">Xem ngay</button></div>':"";}
+  var m=db.posts.filter(function(p){return p.uid===u.id&&p.status==="pending";}).length,rj=db.posts.filter(function(p){return p.uid===u.id&&p.status==="rejected";}).length,h="";
+  if(m)h+='<div class="card pbn"><span>'+ic("inbox")+'<span><b>Bạn có '+m+' bài đang chờ duyệt.</b> Bài sẽ hiện trên bảng tin sau khi giáo viên chấp nhận.</span></span><button class="btn pri sm" data-act="nav" data-v="mine">Xem bài của tôi</button></div>';
+  if(rj)h+='<div class="card pbn warn"><span>'+ic("undo")+'<span><b>'+rj+' bài được giáo viên trả lại.</b> Xem góp ý, sửa rồi gửi lại.</span></span><button class="btn pri sm" data-act="nav" data-v="mine">Xem góp ý</button></div>';
+  return h;
+}
 function renderFeed(){
-  var h='<div class="shell">'+leftRail()+'<div class="center gap">'+mobNotice()+creator();
+  var h='<div class="shell">'+leftRail()+'<div class="center gap">'+mobNotice()+pendBanner()+creator();
   h+='<div class="card sortbar"><b>'+(ui.q?"Kết quả tìm kiếm":"Bảng tin")+'</b><div class="seg" role="group" aria-label="Sắp xếp">';
   SORTS.forEach(function(x){h+='<button data-act="sort" data-v="'+x[0]+'" aria-pressed="'+(ui.sort===x[0])+'">'+x[1]+'</button>';});
   h+='</div></div><div id="list" class="gap">'+feedList()+'</div><div class="mob">'+footer()+'</div></div>'+rightRail()+'</div>';
