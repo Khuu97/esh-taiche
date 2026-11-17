@@ -70,6 +70,9 @@ svg{flex:none}
 
 /* ===== Ảnh đại diện ===== */
 .av{display:grid;place-items:center;border-radius:50%;font-weight:700;color:#fff;flex:none;width:40px;height:40px;font-size:16px}
+.av{overflow:hidden}.av img{width:100%;height:100%;object-fit:cover;display:block}
+.cvin{position:relative;background-size:cover!important;background-position:center!important}
+.pav{position:relative}.cam{position:absolute;display:grid;place-items:center;border:0;cursor:pointer;background:#e4e6eb;color:#050505;box-shadow:0 1px 3px rgba(0,0,0,.25)}.cam:hover{background:#d8dadf}.cam.a{right:6px;bottom:8px;width:36px;height:36px;border-radius:50%}.cam.c{right:14px;bottom:14px;height:36px;padding:0 12px;border-radius:8px;gap:6px;display:flex;align-items:center;font-weight:600;font-size:14px}.cam .ic{width:18px;height:18px}
 .av.s{width:32px;height:32px;font-size:13px}
 .av.xs{width:28px;height:28px;font-size:12px}
 .av.l{width:36px;height:36px;font-size:15px}
@@ -494,7 +497,7 @@ var IC={
 function ic(n,c){return '<svg class="ic'+(c?" "+c:"")+'" viewBox="0 0 24 24" aria-hidden="true">'+(IC[n]||"")+'</svg>';}
 var PAL=["#83184c","#1b74e4","#0a7c66","#c2410c","#6d28d9","#be185d","#0e7490","#4d7c0f"];
 function ini(n){var p=String(n||"?").trim().split(/\s+/);return (p[p.length-1][0]||"?").toUpperCase();}
-function av(u,c){var n=(u&&u.name)||"?",h=0;for(var i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))>>>0;var col=u&&u.role==="teacher"?"#83184c":PAL[h%PAL.length];return '<span class="av'+(c?" "+c:"")+'" style="background:'+col+'" aria-hidden="true">'+(u&&u.role==="teacher"?"GV":esc(ini(n)))+'</span>';}
+function av(u,c){var n=(u&&u.name)||"?",h=0;for(var i=0;i<n.length;i++)h=(h*31+n.charCodeAt(i))>>>0;var col=u&&u.role==="teacher"?"#83184c":PAL[h%PAL.length];return '<span class="av'+(c?" "+c:"")+'" style="background:'+col+'" aria-hidden="true">'+(u&&u.avatar?'<img alt="" src="'+esc(u.avatar)+'">':(u&&u.role==="teacher"?"GV":esc(ini(n))))+'</span>';}
 
 /* ---------- dữ liệu ---------- */
 var SB_URL="https://umnkipohkmpjymzcwxvj.supabase.co";
@@ -533,7 +536,7 @@ async function refresh(){
   var r=await Promise.all(q);
   r.forEach(function(x){if(x.error)throw x.error;});
   var em={};((r[7]&&r[7].data)||[]).forEach(function(x){em[x.id]=x.email;});
-  db.users=r[0].data.map(function(u){return {id:u.id,name:u.name,cls:u.cls||"",role:u.role,locked:u.locked,email:em[u.id]||"",created:Date.parse(u.created_at),visits:u.visit_count||0,seen:u.last_seen?Date.parse(u.last_seen):0};});
+  db.users=r[0].data.map(function(u){return {id:u.id,name:u.name,cls:u.cls||"",role:u.role,locked:u.locked,email:em[u.id]||"",created:Date.parse(u.created_at),visits:u.visit_count||0,seen:u.last_seen?Date.parse(u.last_seen):0,avatar:u.avatar_url||"",cover:u.cover_url||""};});
   var likes={},ups={};
   r[3].data.forEach(function(l){(likes[l.post_id]=likes[l.post_id]||[]).push(l.user_id);});
   r[4].data.forEach(function(x){(ups[x.post_id]=ups[x.post_id]||[]).push({t:Date.parse(x.created_at),note:x.note});});
@@ -708,7 +711,7 @@ function renderMine(){
   var c={pending:0,published:0,rejected:0,hidden:0},lk=0,vw=0;arr.forEach(function(p){c[p.status]++;if(p.status==="published"){lk+=p.likes.length;vw+=p.views;}});
   var F=[["all","Tất cả",arr.length],["published","Đã đăng",c.published],["pending","Chờ duyệt",c.pending],["rejected","Được trả lại",c.rejected]];
   var list=ui.pf==="all"?arr:arr.filter(function(p){return p.status===ui.pf;});
-  var h='<div class="prof"><div class="cover"><div class="cvin"></div></div><div class="phd"><div class="pav">'+av(u,"xxl")+'</div><div class="pnm"><h1>'+esc(u.name)+'</h1><p>'+(u.role==="teacher"?"Giáo viên quản trị":"Học sinh"+(u.cls?" lớp "+esc(u.cls):""))+' · '+c.published+' bài đã đăng · '+num(lk)+' lượt thích</p></div><div class="pbt">'+(u.locked?"":'<button class="btn pri" data-act="compose">'+ic("plus")+'Tạo bài viết</button>')+'<button class="btn" data-act="settings" data-v="acc">'+ic("edit")+'Chỉnh sửa trang cá nhân</button></div></div>';
+  var h='<div class="prof"><div class="cover"><div class="cvin"'+(u.cover?' style="background:url(\''+esc(u.cover)+'\')"':"")+'>'+(u.locked?"":'<label class="cam c">'+ic("photo")+'Đổi ảnh bìa<input id="pcv" type="file" accept="image/*" hidden></label>')+'</div></div><div class="phd"><div class="pav">'+av(u,"xxl")+(u.locked?"":'<label class="cam a" title="Đổi ảnh đại diện">'+ic("photo")+'<input id="pavf" type="file" accept="image/*" hidden></label>')+'</div><div class="pnm"><h1>'+esc(u.name)+'</h1><p>'+(u.role==="teacher"?"Giáo viên quản trị":"Học sinh"+(u.cls?" lớp "+esc(u.cls):""))+' · '+c.published+' bài đã đăng · '+num(lk)+' lượt thích</p></div><div class="pbt">'+(u.locked?"":'<button class="btn pri" data-act="compose">'+ic("plus")+'Tạo bài viết</button>')+'<button class="btn" data-act="settings" data-v="acc">'+ic("edit")+'Chỉnh sửa trang cá nhân</button></div></div>';
   h+='<div class="ptabs"><button aria-current="page">Bài viết</button><button data-act="settings" data-v="acc">Giới thiệu</button></div></div>';
   h+='<div class="pgrid"><div class="pleft"><div class="card sec"><h3>Giới thiệu</h3><ul class="intro">'+
     '<li>'+ic("school")+'<span>'+(u.role==="teacher"?"Giáo viên":"Học sinh")+' tại <b>Einstein School HCMC</b></span></li>'+(u.cls?'<li>'+ic("users")+'<span>Lớp <b>'+esc(u.cls)+'</b></span></li>':"")+
@@ -1036,7 +1039,27 @@ document.addEventListener("input",function(e){
   if(e.target.id==="ct"&&ui.draft){ui.draft.text=e.target.value;if(!ui.draft.id)draftSet(e.target.value);var pb=document.querySelector("[data-act=dopost]");if(pb)pb.disabled=e.target.value.trim().length<1&&!(ui.draft.keep.length+ui.draft.files.length);}
   if(e.target.id==="uq"){ui.uq=e.target.value;render();var uqi=document.getElementById("uq");uqi.focus();uqi.setSelectionRange(uqi.value.length,uqi.value.length);}
 });
+function compressTo(f,max,sq){return new Promise(function(res){
+  var fr=new FileReader();
+  fr.onload=function(){var im=new Image();im.onload=function(){var c=document.createElement("canvas"),sx=0,sy=0,sw=im.width,sh=im.height;
+    if(sq){var m=Math.min(sw,sh);sx=(sw-m)/2;sy=(sh-m)/2;sw=sh=m;c.width=c.height=Math.min(max,m);}else{c.width=Math.min(max,sw);c.height=Math.round(sh*c.width/sw);}
+    c.getContext("2d").drawImage(im,sx,sy,sw,sh,0,0,c.width,c.height);c.toBlob(function(b){res(b);},"image/jpeg",.85);};im.onerror=function(){res(null);};im.src=fr.result;};
+  fr.onerror=function(){res(null);};fr.readAsDataURL(f);
+});}
+async function setMyImage(file,kind){
+  var u=me();if(!u||!file||!/^image\//.test(file.type))return;
+  toast("Đang tải ảnh...");
+  try{
+    var b=await compressTo(file,kind==="a"?480:1600,kind==="a");if(!b)throw new Error("Không đọc được ảnh");
+    var path=u.id+"/"+(kind==="a"?"avatar-":"cover-")+nid()+".jpg",up=await sb.storage.from("post-images").upload(path,b,{contentType:"image/jpeg"});
+    if(up.error)throw up.error;
+    var url=sb.storage.from("post-images").getPublicUrl(path).data.publicUrl;
+    var rr=await sb.rpc("update_my_images",{a:kind==="a"?url:null,c:kind==="c"?url:null,set_a:kind==="a",set_c:kind==="c"});if(rr.error)throw rr.error;
+    await refresh();render();toast(kind==="a"?"Đã đổi ảnh đại diện.":"Đã đổi ảnh bìa.");
+  }catch(e){toast(errText(e));}
+}
 document.addEventListener("change",function(e){
+  if(e.target.id==="pavf"||e.target.id==="pcv"){var f0=e.target.files[0];e.target.value="";setMyImage(f0,e.target.id==="pavf"?"a":"c");return;}
   if(e.target.id==="pf"&&ui.draft){
     var d=ui.draft,room=10-d.keep.length-d.files.length;
     Array.prototype.slice.call(e.target.files,0,Math.max(0,room)).forEach(function(f){if(/^image\//.test(f.type))d.files.push({f:f,url:URL.createObjectURL(f)});});
